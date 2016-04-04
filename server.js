@@ -4,6 +4,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 
 const pollTravis = require('./lib/pollTravis')
+const nodeRepo = require('./lib/nodeRepo')
 
 const app = express()
 
@@ -26,6 +27,15 @@ app.all('/hooks/github', (req, res) => {
 app.get('/pr/:owner/:repo/:prId', (req, res) => {
   pollTravis.pollAndComment(req.params.owner, req.params.repo, parseInt(req.params.prId))
   res.end()
+})
+
+app.get('/labels/:prId', (req, res) => {
+  nodeRepo.resolvePrLabels(req.params.prId, (err, labels) => {
+    const statusCode = err ? 500 : 200;
+
+    res.json(labels)
+    res.status(statusCode).end()
+  })
 })
 
 app.listen(process.env.PORT || 3000, () => {
